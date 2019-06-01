@@ -2,13 +2,18 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 11:52:39
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 20:15:52
+ * @ Modified time: 2019-06-01 22:14:50
  * @ Description:
  */
 
 #include <sx127x_io.h>
 #include <sx127x_private.h>
 #include <sx127x_registers.h>
+
+static const float F_STEP = (32000000.0 / 524288.0);
+
+uint8_t sx127x_frequency_to_reg(uint32_t frequency, uint8_t* reg); // reg должен быть размером 3 байта
+uint32_t sx127x_reg_to_frequency(uint8_t* reg); // reg должен быть размером 3 байта
 
 uint8_t sx127x_set_fifo_pointer(sx127x_dev_t* dev, uint8_t pointer)
 {
@@ -104,6 +109,60 @@ uint8_t sx127x_set_dio_config(sx127x_dev_t* dev, uint16_t config)
     return 0;
 }
 
+uint8_t sx127x_set_modulation_mode(sx127x_dev_t* dev, modulation_t modulation)
+{
+    // TODO
+    return 0;
+}
+
+uint8_t sx127x_set_pa_select(sx127x_dev_t* dev, pa_select_t pa_select)
+{
+    // TODO
+    return 0;
+}
+
+uint8_t sx127x_set_power(sx127x_dev_t* dev, uint8_t power)
+{
+    // TODO
+    return 0;
+}
+
+uint8_t sx127x_set_spreading_factor(sx127x_dev_t* dev, spreading_factor_t spreading_factor)
+{
+    // TODO
+    return 0;
+}
+
+uint8_t sx127x_set_band_width(sx127x_dev_t* dev, band_width_t band_width)
+{
+    // TODO
+    return 0;
+}
+
+uint8_t sx127x_set_coding_rate(sx127x_dev_t* dev, coding_rate_t coding_rate)
+{
+    // TODO
+    return 0;
+}
+
+uint8_t sx127x_set_payload_crc_on(sx127x_dev_t* dev, bool crc_on)
+{
+    // TODO
+    return 0;
+}
+
+uint8_t sx127x_set_preamble_length(sx127x_dev_t* dev, uint16_t preamble_length)
+{
+    // TODO
+    return 0;
+}
+
+uint8_t sx127x_set_frequency(sx127x_dev_t* dev, uint32_t frequency)
+{
+    // TODO
+    return 0;
+}
+
 uint8_t sx127x_get_fifo_pointer(sx127x_dev_t* dev)
 {
     return sx127x_read_register(dev->spi, RegFifoAddrPtr);
@@ -160,4 +219,102 @@ uint8_t sx127x_get_crc_valid(sx127x_dev_t* dev)
 uint8_t sx127x_get_modem_status(sx127x_dev_t* dev)
 {
     return sx127x_read_register(dev->spi, RegModemStat);
+}
+
+modulation_t sx127x_get_modulation_mode(sx127x_dev_t* dev)
+{
+    dev->settings.modulation = (modulation_t)(sx127x_read_register(dev->spi, RegOpMode) >> 7);
+
+    return dev->settings.modulation;
+}
+
+device_mode_t sx127x_get_mode(sx127x_dev_t* dev)
+{
+    dev->settings.mode = (device_mode_t)(sx127x_read_register(dev->spi, RegOpMode) & 0x7);
+
+    return dev->settings.mode;
+}
+
+pa_select_t sx127x_get_pa_select(sx127x_dev_t* dev)
+{
+    dev->settings.pa_select = (pa_select_t)(sx127x_read_register(dev->spi, RegPaConfig) >> 7);
+
+    return dev->settings.pa_select;
+}
+
+uint8_t sx127x_get_power(sx127x_dev_t* dev)
+{
+    dev->settings.power = sx127x_read_register(dev->spi, RegPaConfig) & 0x07;
+
+    return dev->settings.power;
+}
+
+spreading_factor_t sx127x_get_spreading_factor(sx127x_dev_t* dev)
+{
+    dev->settings.spreading_factor = (spreading_factor_t)(sx127x_read_register(dev->spi, RegModemConfig2) >> 4);
+
+    return dev->settings.spreading_factor;
+}
+
+band_width_t sx127x_get_band_width(sx127x_dev_t* dev)
+{
+    dev->settings.band_width = (band_width_t)(sx127x_read_register(dev->spi, RegModemConfig1) >> 4);
+
+    dev->settings.band_width;
+}
+
+coding_rate_t sx127x_get_coding_rate(sx127x_dev_t* dev)
+{
+    dev->settings.coding_rate = (coding_rate_t)((sx127x_read_register(dev->spi, RegModemConfig1) >> 1) & 0x07);
+
+    return dev->settings.coding_rate;
+}
+
+bool sx127x_get_payload_crc_on(sx127x_dev_t* dev)
+{
+    dev->settings.payload_crc_on = (sx127x_read_register(dev->spi, RegModemConfig2) & 1 << 2);
+
+    return dev->settings.payload_crc_on;
+}
+
+uint16_t sx127x_get_preamble_length(sx127x_dev_t* dev)
+{
+    uint8_t preamble_length[2];
+
+    sx127x_read_burst(dev->spi, RegPreambleMsb, preamble_length, 2);
+
+    dev->settings.preamble_length = (((uint16_t)preamble_length[0]) << 8) | ((uint16_t)preamble_length[1]);
+
+    return dev->settings.preamble_length;
+}
+
+uint32_t sx127x_get_frequency(sx127x_dev_t* dev)
+{
+    uint8_t frequency[3];
+
+    sx127x_read_burst(dev->spi, RegFrMsb, frequency, 3);
+
+    dev->settings.frequency = sx127x_reg_to_frequency(frequency);
+
+    return dev->settings.frequency;
+}
+
+uint8_t sx127x_frequency_to_reg(uint32_t frequency, uint8_t* reg)
+{
+    if (frequency < 137000000 || frequency > 1020000000)
+        return -1;
+
+    uint32_t result = (uint32_t)((float)frequency / F_STEP);
+
+    reg[0] = (uint8_t)(result >> 16);
+    reg[1] = (uint8_t)(result >> 8);
+    reg[2] = (uint8_t)(result);
+
+    return 0;
+}
+
+uint32_t sx127x_reg_to_frequency(uint8_t* reg)
+{
+    uint32_t reg_value = (((uint32_t)reg[0]) << 16) | (((uint32_t)reg[1]) << 8) | ((uint32_t)reg[1]);
+    return (uint32_t)((float)reg_value * F_STEP);
 }

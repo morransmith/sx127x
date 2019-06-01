@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:05
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 20:21:25
+ * @ Modified time: 2019-06-01 22:17:39
  * @ Description:
  */
 
@@ -110,9 +110,25 @@ uint8_t sx127x_init(sx127x_dev_t* dev)
 {
     printf("hello from init\n");
 
+    sx127x_load_current_parameters(dev);
+
     sx127x_get_version(dev);
 
     return 0;
+}
+
+uint8_t sx127x_load_current_parameters(sx127x_dev_t* dev)
+{
+    sx127x_get_modulation_mode(dev);
+    sx127x_get_mode(dev);
+    sx127x_get_pa_select(dev);
+    sx127x_get_power(dev);
+    sx127x_get_spreading_factor(dev);
+    sx127x_get_band_width(dev);
+    sx127x_get_coding_rate(dev);
+    sx127x_get_payload_crc_on(dev);
+    sx127x_get_preamble_length(dev);
+    sx127x_get_frequency(dev);
 }
 
 uint8_t sx127x_get_version(sx127x_dev_t* dev)

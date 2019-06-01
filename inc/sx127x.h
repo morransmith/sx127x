@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:04
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 16:16:38
+ * @ Modified time: 2019-06-01 22:15:48
  * @ Description:
  */
 
@@ -11,10 +11,21 @@
 
 #include "sx127x_platform.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef void (*sx127x_rx_callback_fn_t)(uint8_t*, uint8_t);
 typedef void (*sx127x_callback_fn_t)(void);
+
+typedef enum modulation {
+    FSK_OOK = 0,
+    LORA = 1
+} modulation_t;
+
+typedef enum pa_select {
+    RFO = 0,
+    PA_BOOST = 1
+} pa_select_t;
 
 typedef enum spreading_factor {
     SF_7 = 7,
@@ -57,8 +68,16 @@ typedef struct sx127x_callbacks {
 } sx127x_callbacks_t;
 
 typedef struct sx127x_radio_settings {
+    modulation_t modulation;
     device_mode_t mode;
+    pa_select_t pa_select;
+    uint8_t power;
     spreading_factor_t spreading_factor;
+    band_width_t band_width;
+    coding_rate_t coding_rate;
+    bool payload_crc_on;
+    uint16_t preamble_length;
+    uint32_t frequency;
 } sx127x_radio_settings_t;
 
 typedef struct dev {
@@ -78,6 +97,8 @@ void sx127x_dio_4_callback(sx127x_dev_t* dev);
 void sx127x_dio_5_callback(sx127x_dev_t* dev);
 
 uint8_t sx127x_init(sx127x_dev_t* dev);
+
+uint8_t sx127x_load_current_parameters(sx127x_dev_t* dev);
 
 uint8_t sx127x_get_version(sx127x_dev_t* dev);
 

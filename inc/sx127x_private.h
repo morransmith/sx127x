@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 11:51:19
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 20:12:33
+ * @ Modified time: 2019-06-01 21:58:45
  * @ Description:
  */
 
@@ -29,6 +29,24 @@ uint8_t sx127x_set_irq_flags_mask(sx127x_dev_t* dev, uint8_t mask);
 
 uint8_t sx127x_set_dio_config(sx127x_dev_t* dev, uint16_t config);
 
+uint8_t sx127x_set_modulation_mode(sx127x_dev_t* dev, modulation_t modulation);
+
+uint8_t sx127x_set_pa_select(sx127x_dev_t* dev, pa_select_t pa_select);
+
+uint8_t sx127x_set_power(sx127x_dev_t* dev, uint8_t power);
+
+uint8_t sx127x_set_spreading_factor(sx127x_dev_t* dev, spreading_factor_t spreading_factor);
+
+uint8_t sx127x_set_band_width(sx127x_dev_t* dev, band_width_t band_width);
+
+uint8_t sx127x_set_coding_rate(sx127x_dev_t* dev, coding_rate_t coding_rate);
+
+uint8_t sx127x_set_payload_crc_on(sx127x_dev_t* dev, bool crc_on);
+
+uint8_t sx127x_set_preamble_length(sx127x_dev_t* dev, uint16_t preamble_length);
+
+uint8_t sx127x_set_frequency(sx127x_dev_t* dev, uint32_t frequency);
+
 uint8_t sx127x_get_fifo_pointer(sx127x_dev_t* dev);
 uint8_t sx127x_get_fifo_tx_pointer(sx127x_dev_t* dev);
 uint8_t sx127x_get_fifo_rx_pointer(sx127x_dev_t* dev);
@@ -44,5 +62,25 @@ uint16_t sx127x_get_dio_config(sx127x_dev_t* dev);
 uint8_t sx127x_get_crc_valid(sx127x_dev_t* dev);
 
 uint8_t sx127x_get_modem_status(sx127x_dev_t* dev);
+
+modulation_t sx127x_get_modulation_mode(sx127x_dev_t* dev);
+
+device_mode_t sx127x_get_mode(sx127x_dev_t* dev);
+
+pa_select_t sx127x_get_pa_select(sx127x_dev_t* dev);
+
+uint8_t sx127x_get_power(sx127x_dev_t* dev);
+
+spreading_factor_t sx127x_get_spreading_factor(sx127x_dev_t* dev);
+
+band_width_t sx127x_get_band_width(sx127x_dev_t* dev);
+
+coding_rate_t sx127x_get_coding_rate(sx127x_dev_t* dev);
+
+bool sx127x_get_payload_crc_on(sx127x_dev_t* dev);
+
+uint16_t sx127x_get_preamble_length(sx127x_dev_t* dev);
+
+uint32_t sx127x_get_frequency(sx127x_dev_t* dev);
 
 #endif /* SX127X_PRIVATE_H */
