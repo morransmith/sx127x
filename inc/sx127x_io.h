@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:59:33
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 11:19:34
+ * @ Modified time: 2019-06-01 11:57:50
  * @ Description:
  */
 
@@ -18,8 +18,5 @@ uint8_t sx127x_read_register(spi_t* dev, uint8_t reg);
 
 uint8_t sx127x_write_burst(spi_t* dev, uint8_t reg, uint8_t* buffer, uint8_t size);
 uint8_t sx127x_read_burst(spi_t* dev, uint8_t reg, uint8_t* buffer, uint8_t size);
-
-uint8_t sx127x_write_fifo(spi_t* dev, uint8_t* buffer, uint8_t size);
-uint8_t sx127x_read_fifo(spi_t* dev, uint8_t* buffer, uint8_t size);
 
 #endif /* SX127X_IO_H */

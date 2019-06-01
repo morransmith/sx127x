@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:04
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 11:39:08
+ * @ Modified time: 2019-06-01 12:30:33
  * @ Description:
  */
 
@@ -35,7 +35,19 @@ typedef enum coding_rate {
     CR_4_8 = 4
 } coding_rate_t;
 
+typedef enum device_mode {
+    MODE_SLEEP = 0,
+    MODE_STDBY = 1,
+    MODE_FSTX = 2,
+    MODE_TX = 3,
+    MODE_FSRX = 4,
+    MODE_RXCONTINUOUS = 5,
+    MODE_RXSINGLE = 6,
+    MODE_CAD = 7
+} device_mode_t;
+
 typedef struct sx127x_radio_settings {
+    device_mode_t mode;
     spreading_factor_t spreading_factor;
 } sx127x_radio_settings_t;
 
@@ -51,5 +63,17 @@ uint8_t sx127x_free(sx127x_dev_t** dev);
 uint8_t sx127x_init(sx127x_dev_t* dev);
 
 uint8_t sx127x_get_version(sx127x_dev_t* dev);
+
+uint8_t sx127x_set_sleep(sx127x_dev_t* dev);
+uint8_t sx127x_set_standby(sx127x_dev_t* dev);
+
+uint8_t sx127x_transmit(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size);
+uint8_t sx127x_transmit_it(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size);
+
+uint8_t sx127x_receive_single(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size);
+uint8_t sx127x_receive_single_it(sx127x_dev_t* dev);
+
+uint8_t sx127x_receive_continuous(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size);
+uint8_t sx127x_receive_continuous_it(sx127x_dev_t* dev);
 
 #endif /* SX127X_H */
