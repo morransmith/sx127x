@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:54:20
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 15:03:28
+ * @ Modified time: 2019-06-01 19:49:34
  * @ Description:
  */
 
@@ -72,5 +72,17 @@
 #define FlagCadDone (1 << 2)
 #define FlagFhssChangeChannel (1 << 1)
 #define FlagCadDetected (1 << 0)
+
+#define DIO_0_MAPPING 14
+#define DIO_1_MAPPING 12
+#define DIO_2_MAPPING 10
+#define DIO_3_MAPPING 8
+#define DIO_4_MAPPING 6
+#define DIO_5_MAPPING 4
+
+#define DIO_MODE_0 0
+#define DIO_MODE_1 1
+#define DIO_MODE_2 2
+#define DIO_MODE_DISABLE 3
 
 #endif /* SX127X_REGISTERS_H */

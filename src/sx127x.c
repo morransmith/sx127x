@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:05
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 16:39:37
+ * @ Modified time: 2019-06-01 20:02:46
  * @ Description:
  */
 
@@ -138,7 +138,10 @@ uint8_t sx127x_set_standby(sx127x_dev_t* dev)
 
 uint8_t sx127x_transmit(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size, uint32_t delay)
 {
-    // TODO: Отключение прерывания DIO TxDone
+    uint16_t dio_mapping = sx127x_get_dio_config(dev);
+
+    if (sx127x_set_dio_config(dev, dio_mapping | (DIO_MODE_DISABLE << DIO_0_MAPPING)) != 0) // Отключение DIO0
+        return -1;
 
     if (sx127x_clear_irq_flags(dev, FlagTxDone) != 0) // На всякий случай очистра прерывания TxDone
         return -1;
@@ -167,7 +170,10 @@ uint8_t sx127x_transmit(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size, uint32
 
 uint8_t sx127x_transmit_it(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size)
 {
-    // TODO: Включение прерывания DIO TxDone
+    uint16_t dio_mapping = sx127x_get_dio_config(dev);
+
+    if (sx127x_set_dio_config(dev, dio_mapping & (DIO_MODE_0 << DIO_0_MAPPING)) != 0) // Включение DIO0
+        return -1;
 
     if (sx127x_clear_irq_flags(dev, FlagTxDone) != 0) // На всякий случай очистра прерывания TxDone
         return -1;
@@ -189,7 +195,10 @@ uint8_t sx127x_transmit_it(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size)
 
 uint8_t sx127x_receive_single(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* size)
 {
-    // TODO: отключение прерываний DIO
+    uint16_t dio_mapping = sx127x_get_dio_config(dev);
+
+    if (sx127x_set_dio_config(dev, dio_mapping | (DIO_MODE_DISABLE << DIO_0_MAPPING) | (DIO_MODE_DISABLE << DIO_1_MAPPING) | (DIO_MODE_DISABLE << DIO_3_MAPPING)) != 0) // Отключение DIO0, DIO1 и DIO3
+        return -1;
 
     if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерывания TxDone
         return -1;
@@ -228,7 +237,10 @@ uint8_t sx127x_receive_single(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* size)
 
 uint8_t sx127x_receive_single_it(sx127x_dev_t* dev)
 {
-    // TODO: включение прерываний DIO
+    uint16_t dio_mapping = sx127x_get_dio_config(dev);
+
+    if (sx127x_set_dio_config(dev, dio_mapping & (DIO_MODE_0 << DIO_0_MAPPING) & (DIO_MODE_0 << DIO_1_MAPPING) & (DIO_MODE_0 << DIO_3_MAPPING)) != 0) // Включение DIO0, DIO1 и DIO3
+        return -1;
 
     if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерывания TxDone
         return -1;
@@ -249,10 +261,12 @@ uint8_t sx127x_receive_continuous(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* s
 {
     if (dev->settings.mode != MODE_RXCONTINUOUS) {
 
-        // TODO: отключение прерываний DIO
+        uint16_t dio_mapping = sx127x_get_dio_config(dev);
 
-        if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерывания TxDone
-            return -1;
+        if (sx127x_set_dio_config(dev, dio_mapping | (DIO_MODE_DISABLE << DIO_0_MAPPING) | (DIO_MODE_DISABLE << DIO_1_MAPPING) | (DIO_MODE_DISABLE << DIO_3_MAPPING)) != 0) // Отключение DIO0, DIO1 и DIO3
+
+            if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерывания TxDone
+                return -1;
 
         if (sx127x_set_irq_flags_mask(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // Включение прерывания по окончании отправки
             return -1;
@@ -289,7 +303,10 @@ uint8_t sx127x_receive_continuous(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* s
 
 uint8_t sx127x_receive_continuous_it(sx127x_dev_t* dev)
 {
-    // TODO: включение прерываний DIO
+    uint16_t dio_mapping = sx127x_get_dio_config(dev);
+
+    if (sx127x_set_dio_config(dev, dio_mapping & (DIO_MODE_0 << DIO_0_MAPPING) & (DIO_MODE_0 << DIO_1_MAPPING) & (DIO_MODE_0 << DIO_3_MAPPING)) != 0) // Включение DIO0, DIO1 и DIO3
+        return -1;
 
     if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерывания TxDone
         return -1;

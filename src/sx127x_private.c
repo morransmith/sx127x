@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 11:52:39
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 15:57:40
+ * @ Modified time: 2019-06-01 20:04:23
  * @ Description:
  */
 
@@ -97,6 +97,13 @@ uint8_t sx127x_set_irq_flags_mask(sx127x_dev_t* dev, uint8_t mask)
     return 0;
 }
 
+uint8_t sx127x_set_dio_config(sx127x_dev_t* dev, uint16_t config)
+{
+    uint8_t data[2] = { (uint8_t)(config >> 8), (uint8_t)config };
+    sx127x_write_burst(dev->spi, RegDioMapping1, data, 2);
+    return 0;
+}
+
 uint8_t sx127x_get_fifo_pointer(sx127x_dev_t* dev)
 {
     return sx127x_read_register(dev->spi, RegFifoAddrPtr);
@@ -130,6 +137,13 @@ uint8_t sx127x_get_irq_flags(sx127x_dev_t* dev)
 uint8_t sx127x_get_irq_flags_mask(sx127x_dev_t* dev)
 {
     return sx127x_read_register(dev->spi, RegIrqFlagsMask);
+}
+
+uint16_t sx127x_get_dio_config(sx127x_dev_t* dev)
+{
+    uint8_t buffer[2];
+    sx127x_read_burst(dev->spi, RegDioMapping1, buffer, 2);
+    return (((uint16_t)(buffer[0]) << 8) | ((uint16_t)(buffer[1]) & 0xff)) & 0xfff0; // regdiomapping1 & regdiomapping2[4:7]
 }
 
 uint8_t sx127x_get_modem_status(sx127x_dev_t* dev)
