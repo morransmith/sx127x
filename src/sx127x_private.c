@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 11:52:39
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 20:04:23
+ * @ Modified time: 2019-06-01 20:15:52
  * @ Description:
  */
 
@@ -144,6 +144,17 @@ uint16_t sx127x_get_dio_config(sx127x_dev_t* dev)
     uint8_t buffer[2];
     sx127x_read_burst(dev->spi, RegDioMapping1, buffer, 2);
     return (((uint16_t)(buffer[0]) << 8) | ((uint16_t)(buffer[1]) & 0xff)) & 0xfff0; // regdiomapping1 & regdiomapping2[4:7]
+}
+
+uint8_t sx127x_get_crc_valid(sx127x_dev_t* dev)
+{
+    if (!(sx127x_read_register(dev->spi, RegHopChannel) & 1 << 6))
+        return 2;
+
+    if (sx127x_get_irq_flags(dev) & FlagPayloadCrcError)
+        return 0;
+
+    return 1;
 }
 
 uint8_t sx127x_get_modem_status(sx127x_dev_t* dev)

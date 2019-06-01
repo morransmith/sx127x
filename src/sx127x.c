@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:05
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 20:02:46
+ * @ Modified time: 2019-06-01 20:21:25
  * @ Description:
  */
 
@@ -216,7 +216,12 @@ uint8_t sx127x_receive_single(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* size)
         uint8_t irq = sx127x_get_irq_flags(dev);
 
         if (irq & FlagRxDone) {
-            // TODO: check crc valid
+            if (!sx127x_get_crc_valid(dev)) {
+                if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError) != 0)
+                    return -1;
+
+                return 1;
+            }
 
             *size = sx127x_get_last_packet_size(dev);
             if (sx127x_read_fifo(dev, buffer, *size) != 0)
@@ -282,7 +287,12 @@ uint8_t sx127x_receive_continuous(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* s
         uint8_t irq = sx127x_get_irq_flags(dev);
 
         if (irq & FlagRxDone) {
-            // TODO: check crc valid
+            if (!sx127x_get_crc_valid(dev)) {
+                if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError) != 0)
+                    return -1;
+
+                return 1;
+            }
 
             *size = sx127x_get_last_packet_size(dev);
             if (sx127x_read_fifo(dev, buffer, *size) != 0)

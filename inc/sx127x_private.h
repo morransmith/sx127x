@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 11:51:19
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 19:52:07
+ * @ Modified time: 2019-06-01 20:12:33
  * @ Description:
  */
 
@@ -40,6 +40,8 @@ uint8_t sx127x_get_irq_flags(sx127x_dev_t* dev);
 uint8_t sx127x_get_irq_flags_mask(sx127x_dev_t* dev);
 
 uint16_t sx127x_get_dio_config(sx127x_dev_t* dev);
+
+uint8_t sx127x_get_crc_valid(sx127x_dev_t* dev);
 
 uint8_t sx127x_get_modem_status(sx127x_dev_t* dev);
 
