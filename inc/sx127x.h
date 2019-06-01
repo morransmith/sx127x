@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:04
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 12:30:33
+ * @ Modified time: 2019-06-01 15:18:21
  * @ Description:
  */
 
@@ -67,13 +67,13 @@ uint8_t sx127x_get_version(sx127x_dev_t* dev);
 uint8_t sx127x_set_sleep(sx127x_dev_t* dev);
 uint8_t sx127x_set_standby(sx127x_dev_t* dev);
 
-uint8_t sx127x_transmit(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size);
+uint8_t sx127x_transmit(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size, uint32_t delay);
 uint8_t sx127x_transmit_it(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size);
 
-uint8_t sx127x_receive_single(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size);
+uint8_t sx127x_receive_single(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* size);
 uint8_t sx127x_receive_single_it(sx127x_dev_t* dev);
 
-uint8_t sx127x_receive_continuous(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size);
+uint8_t sx127x_receive_continuous(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* size);
 uint8_t sx127x_receive_continuous_it(sx127x_dev_t* dev);
 
 #endif /* SX127X_H */

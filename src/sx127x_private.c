@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 11:52:39
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 12:35:35
+ * @ Modified time: 2019-06-01 15:57:40
  * @ Description:
  */
 
@@ -45,7 +45,7 @@ uint8_t sx127x_write_fifo(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size)
     if (sx127x_set_fifo_pointer(dev, 0) != 0) // Установка текущего указателя FIFO
         return -1;
 
-    if (sx127x_set_payload_size(dev, 0) != 0) // Установка размера пакета данных
+    if (sx127x_set_payload_size(dev, 5) != 0) // Установка размера пакета данных
         return -1;
 
     return sx127x_write_burst(dev->spi, RegFifo, buffer, size); // Загрузка буфера в FIFO
@@ -53,6 +53,10 @@ uint8_t sx127x_write_fifo(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size)
 
 uint8_t sx127x_read_fifo(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size)
 {
+    uint8_t pointer = sx127x_get_fifo_rx_current_pointer(dev);
+
+    if (sx127x_set_fifo_pointer(dev, pointer) != 0) // Установка текущего указателя FIFO
+        return -1;
 
     return sx127x_read_burst(dev->spi, RegFifo, buffer, size);
 }
@@ -79,4 +83,56 @@ uint8_t sx127x_set_rx_continuos(sx127x_dev_t* dev)
     sx127x_write_register(dev->spi, RegOpMode, (reg & 0xF8) | MODE_RXCONTINUOUS);
     dev->settings.mode = MODE_RXCONTINUOUS;
     return 0;
+}
+
+uint8_t sx127x_clear_irq_flags(sx127x_dev_t* dev, uint8_t flags)
+{
+    sx127x_write_register(dev->spi, RegIrqFlags, flags);
+    return 0;
+}
+
+uint8_t sx127x_set_irq_flags_mask(sx127x_dev_t* dev, uint8_t mask)
+{
+    sx127x_write_register(dev->spi, RegIrqFlagsMask, mask ^ 0xff);
+    return 0;
+}
+
+uint8_t sx127x_get_fifo_pointer(sx127x_dev_t* dev)
+{
+    return sx127x_read_register(dev->spi, RegFifoAddrPtr);
+}
+
+uint8_t sx127x_get_fifo_tx_pointer(sx127x_dev_t* dev)
+{
+    return sx127x_read_register(dev->spi, RegFifoTxBaseAddr);
+}
+
+uint8_t sx127x_get_fifo_rx_pointer(sx127x_dev_t* dev)
+{
+    return sx127x_read_register(dev->spi, RegFifoRxBaseAddr);
+}
+
+uint8_t sx127x_get_fifo_rx_current_pointer(sx127x_dev_t* dev)
+{
+    return sx127x_read_register(dev->spi, RegFifoRxCurrentAddr);
+}
+
+uint8_t sx127x_get_last_packet_size(sx127x_dev_t* dev)
+{
+    return sx127x_read_register(dev->spi, RegRxNbBytes);
+}
+
+uint8_t sx127x_get_irq_flags(sx127x_dev_t* dev)
+{
+    return sx127x_read_register(dev->spi, RegIrqFlags);
+}
+
+uint8_t sx127x_get_irq_flags_mask(sx127x_dev_t* dev)
+{
+    return sx127x_read_register(dev->spi, RegIrqFlagsMask);
+}
+
+uint8_t sx127x_get_modem_status(sx127x_dev_t* dev)
+{
+    return sx127x_read_register(dev->spi, RegModemStat);
 }

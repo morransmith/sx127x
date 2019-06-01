@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:54:20
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 09:56:28
+ * @ Modified time: 2019-06-01 15:03:28
  * @ Description:
  */
 
@@ -63,5 +63,14 @@
 #define RegAgcTresh1 0x62
 #define RegAgcTresh2 0x63
 #define RegAgcTresh3 0x64
+
+#define FlagRxTimeout (1 << 7)
+#define FlagRxDone (1 << 6)
+#define FlagPayloadCrcError (1 << 5)
+#define FlagValidHeader (1 << 4)
+#define FlagTxDone (1 << 3)
+#define FlagCadDone (1 << 2)
+#define FlagFhssChangeChannel (1 << 1)
+#define FlagCadDetected (1 << 0)
 
 #endif /* SX127X_REGISTERS_H */
