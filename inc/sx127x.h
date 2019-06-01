@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:04
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 15:18:21
+ * @ Modified time: 2019-06-01 16:16:38
  * @ Description:
  */
 
@@ -12,6 +12,9 @@
 #include "sx127x_platform.h"
 
 #include <stdint.h>
+
+typedef void (*sx127x_rx_callback_fn_t)(uint8_t*, uint8_t);
+typedef void (*sx127x_callback_fn_t)(void);
 
 typedef enum spreading_factor {
     SF_7 = 7,
@@ -46,6 +49,13 @@ typedef enum device_mode {
     MODE_CAD = 7
 } device_mode_t;
 
+typedef struct sx127x_callbacks {
+    sx127x_callback_fn_t tx_done;
+    sx127x_rx_callback_fn_t rx_done;
+    sx127x_callback_fn_t rx_timeout;
+    sx127x_callback_fn_t rx_crc_error;
+} sx127x_callbacks_t;
+
 typedef struct sx127x_radio_settings {
     device_mode_t mode;
     spreading_factor_t spreading_factor;
@@ -54,11 +64,18 @@ typedef struct sx127x_radio_settings {
 typedef struct dev {
     spi_t* spi;
     sx127x_radio_settings_t settings;
-
+    sx127x_callbacks_t* callbacks;
 } sx127x_dev_t;
 
-uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi);
+uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbacks);
 uint8_t sx127x_free(sx127x_dev_t** dev);
+
+void sx127x_dio_0_callback(sx127x_dev_t* dev);
+void sx127x_dio_1_callback(sx127x_dev_t* dev);
+void sx127x_dio_2_callback(sx127x_dev_t* dev);
+void sx127x_dio_3_callback(sx127x_dev_t* dev);
+void sx127x_dio_4_callback(sx127x_dev_t* dev);
+void sx127x_dio_5_callback(sx127x_dev_t* dev);
 
 uint8_t sx127x_init(sx127x_dev_t* dev);
 

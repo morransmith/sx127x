@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:05
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 15:46:32
+ * @ Modified time: 2019-06-01 16:39:37
  * @ Description:
  */
 
@@ -14,13 +14,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi)
+uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbacks)
 {
     *dev = (sx127x_dev_t*)malloc(sizeof(sx127x_dev_t));
     if (!dev)
         return -1;
 
     (*dev)->spi = spi;
+    (*dev)->callbacks = callbacks;
 
     return 0;
 }
@@ -33,6 +34,76 @@ uint8_t sx127x_free(sx127x_dev_t** dev)
     free(*dev);
 
     return 0;
+}
+
+void sx127x_dio_0_callback(sx127x_dev_t* dev)
+{
+    uint8_t irq = sx127x_get_irq_flags(dev);
+
+    switch (dev->settings.mode) {
+    case MODE_TX:
+        if (!(irq & FlagTxDone))
+            break;
+
+        dev->callbacks->tx_done();
+
+        sx127x_clear_irq_flags(dev, FlagTxDone);
+        break;
+    case MODE_RXCONTINUOUS:
+    case MODE_RXSINGLE: {
+        if (!(irq & FlagRxDone))
+            break;
+
+        uint8_t size = sx127x_get_last_packet_size(dev);
+        uint8_t buffer[size];
+
+        sx127x_read_fifo(dev, buffer, size);
+
+        dev->callbacks->rx_done(buffer, size);
+
+        sx127x_clear_irq_flags(dev, FlagRxDone);
+    } break;
+    default:
+        break;
+    }
+}
+
+void sx127x_dio_1_callback(sx127x_dev_t* dev)
+{
+    if (dev->settings.mode != MODE_RXSINGLE)
+        return;
+
+    if (!(sx127x_get_irq_flags(dev) & FlagRxTimeout))
+        return;
+
+    dev->callbacks->rx_timeout();
+
+    sx127x_clear_irq_flags(dev, FlagRxTimeout);
+}
+
+void sx127x_dio_2_callback(sx127x_dev_t* dev)
+{
+}
+
+void sx127x_dio_3_callback(sx127x_dev_t* dev)
+{
+    if (!(dev->settings.mode == MODE_RXSINGLE || dev->settings.mode == MODE_RXCONTINUOUS))
+        return;
+
+    if (!(sx127x_get_irq_flags(dev) & FlagPayloadCrcError))
+        return;
+
+    dev->callbacks->rx_crc_error();
+
+    sx127x_clear_irq_flags(dev, FlagPayloadCrcError);
+}
+
+void sx127x_dio_4_callback(sx127x_dev_t* dev)
+{
+}
+
+void sx127x_dio_5_callback(sx127x_dev_t* dev)
+{
 }
 
 uint8_t sx127x_init(sx127x_dev_t* dev)
