@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:05
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 22:17:39
+ * @ Modified time: 2019-06-02 10:09:38
  * @ Description:
  */
 
@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbacks)
+uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbacks, common_t* common)
 {
     *dev = (sx127x_dev_t*)malloc(sizeof(sx127x_dev_t));
     if (!dev)
@@ -22,6 +22,7 @@ uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbac
 
     (*dev)->spi = spi;
     (*dev)->callbacks = callbacks;
+    (*dev)->common = common;
 
     return 0;
 }
@@ -34,6 +35,14 @@ uint8_t sx127x_free(sx127x_dev_t** dev)
     free(*dev);
 
     return 0;
+}
+
+uint8_t sx127x_reset(sx127x_dev_t* dev)
+{
+    dev->common->reset_control(true);
+    dev->common->delay(1);
+    dev->common->reset_control(false);
+    dev->common->delay(10);
 }
 
 void sx127x_dio_0_callback(sx127x_dev_t* dev)
@@ -106,13 +115,47 @@ void sx127x_dio_5_callback(sx127x_dev_t* dev)
 {
 }
 
-uint8_t sx127x_init(sx127x_dev_t* dev)
+uint8_t sx127x_init(sx127x_dev_t* dev, sx127x_radio_settings_t* settings)
 {
-    printf("hello from init\n");
+    sx127x_reset(dev);
+
+    if (sx127x_get_version(dev) != VERSION)
+        return -1;
+
+    if (sx127x_set_standby(dev) != 0)
+        return -1;
 
     sx127x_load_current_parameters(dev);
 
-    sx127x_get_version(dev);
+    if (sx127x_set_modulation_mode(dev, settings->modulation) != 0)
+        return -1;
+
+    if (sx127x_set_frequency(dev, settings->frequency) != 0)
+        return -1;
+
+    if (sx127x_set_pa_select(dev, settings->pa_select) != 0)
+        return -1;
+
+    if (sx127x_set_power(dev, settings->power) != 0)
+        return -1;
+
+    if (sx127x_set_band_width(dev, settings->band_width) != 0)
+        return -1;
+
+    if (sx127x_set_coding_rate(dev, settings->coding_rate) != 0)
+        return -1;
+
+    if (sx127x_set_spreading_factor(dev, settings->spreading_factor) != 0)
+        return -1;
+
+    if (sx127x_set_payload_crc_on(dev, settings->payload_crc_on) != 0)
+        return -1;
+
+    if (sx127x_set_preamble_length(dev, settings->preamble_length) != 0)
+        return -1;
+
+    if (sx127x_set_sync_word(dev, settings->sync_word) != 0)
+        return -1;
 
     return 0;
 }
@@ -129,6 +172,7 @@ uint8_t sx127x_load_current_parameters(sx127x_dev_t* dev)
     sx127x_get_payload_crc_on(dev);
     sx127x_get_preamble_length(dev);
     sx127x_get_frequency(dev);
+    sx127x_get_sync_word(dev);
 }
 
 uint8_t sx127x_get_version(sx127x_dev_t* dev)
@@ -175,7 +219,7 @@ uint8_t sx127x_transmit(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size, uint32
         return -1;
 
     while (!(sx127x_get_irq_flags(dev) & FlagTxDone)) {
-        // TODO: delay
+        dev->common->delay(1);
 
         if (!delay--)
             return -1;

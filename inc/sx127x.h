@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:04
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 22:15:48
+ * @ Modified time: 2019-06-02 10:07:40
  * @ Description:
  */
 
@@ -78,16 +78,20 @@ typedef struct sx127x_radio_settings {
     bool payload_crc_on;
     uint16_t preamble_length;
     uint32_t frequency;
+    uint8_t sync_word;
 } sx127x_radio_settings_t;
 
 typedef struct dev {
     spi_t* spi;
+    common_t* common;
     sx127x_radio_settings_t settings;
     sx127x_callbacks_t* callbacks;
 } sx127x_dev_t;
 
-uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbacks);
+uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbacks, common_t* common);
 uint8_t sx127x_free(sx127x_dev_t** dev);
+
+uint8_t sx127x_reset(sx127x_dev_t* dev);
 
 void sx127x_dio_0_callback(sx127x_dev_t* dev);
 void sx127x_dio_1_callback(sx127x_dev_t* dev);
@@ -96,9 +100,9 @@ void sx127x_dio_3_callback(sx127x_dev_t* dev);
 void sx127x_dio_4_callback(sx127x_dev_t* dev);
 void sx127x_dio_5_callback(sx127x_dev_t* dev);
 
-uint8_t sx127x_init(sx127x_dev_t* dev);
+uint8_t sx127x_init(sx127x_dev_t* dev, sx127x_radio_settings_t* settings);
 
-uint8_t sx127x_load_current_parameters(sx127x_dev_t* dev);
+uint8_t sx127x_load_current_parameters(sx127x_dev_t* dev); // Загрузка конфигурации из приемопередатчика
 
 uint8_t sx127x_get_version(sx127x_dev_t* dev);
 

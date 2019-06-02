@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 11:51:19
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 21:58:45
+ * @ Modified time: 2019-06-02 09:33:32
  * @ Description:
  */
 
@@ -47,6 +47,8 @@ uint8_t sx127x_set_preamble_length(sx127x_dev_t* dev, uint16_t preamble_length);
 
 uint8_t sx127x_set_frequency(sx127x_dev_t* dev, uint32_t frequency);
 
+uint8_t sx127x_set_sync_word(sx127x_dev_t* dev, uint8_t sync_word);
+
 uint8_t sx127x_get_fifo_pointer(sx127x_dev_t* dev);
 uint8_t sx127x_get_fifo_tx_pointer(sx127x_dev_t* dev);
 uint8_t sx127x_get_fifo_rx_pointer(sx127x_dev_t* dev);
@@ -82,5 +84,7 @@ bool sx127x_get_payload_crc_on(sx127x_dev_t* dev);
 uint16_t sx127x_get_preamble_length(sx127x_dev_t* dev);
 
 uint32_t sx127x_get_frequency(sx127x_dev_t* dev);
+
+uint8_t sx127x_get_sync_word(sx127x_dev_t* dev);
 
 #endif /* SX127X_PRIVATE_H */

@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:54:20
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 19:49:34
+ * @ Modified time: 2019-06-02 09:23:52
  * @ Description:
  */
 
@@ -84,5 +84,8 @@
 #define DIO_MODE_1 1
 #define DIO_MODE_2 2
 #define DIO_MODE_DISABLE 3
+
+// #define VERSION 0x12
+#define VERSION 0xFF
 
 #endif /* SX127X_REGISTERS_H */
