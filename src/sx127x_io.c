@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 10:26:27
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-01 11:57:28
+ * @ Modified time: 2019-06-02 11:36:14
  * @ Description:
  */
 
@@ -30,7 +30,7 @@ uint8_t sx127x_write_burst(spi_t* dev, uint8_t reg, uint8_t* buffer, uint8_t siz
         return -1;
 
     uint8_t tmp[size + 1];
-    tmp[0] = reg;
+    tmp[0] = reg | 0x80;
 
     memmove(tmp + 1, buffer, (uint32_t)size);
 

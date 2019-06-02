@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 11:52:39
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-02 10:02:24
+ * @ Modified time: 2019-06-02 21:55:11
  * @ Description:
  */
 
@@ -50,7 +50,7 @@ uint8_t sx127x_write_fifo(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size)
     if (sx127x_set_fifo_pointer(dev, 0) != 0) // Установка текущего указателя FIFO
         return -1;
 
-    if (sx127x_set_payload_size(dev, 5) != 0) // Установка размера пакета данных
+    if (sx127x_set_payload_size(dev, size) != 0) // Установка размера пакета данных
         return -1;
 
     return sx127x_write_burst(dev->spi, RegFifo, buffer, size); // Загрузка буфера в FIFO
@@ -373,6 +373,6 @@ uint8_t sx127x_frequency_to_reg(uint32_t frequency, uint8_t* reg)
 
 uint32_t sx127x_reg_to_frequency(uint8_t* reg)
 {
-    uint32_t reg_value = (((uint32_t)reg[0]) << 16) | (((uint32_t)reg[1]) << 8) | ((uint32_t)reg[1]);
+    uint32_t reg_value = (((uint32_t)reg[0]) << 16) | (((uint32_t)reg[1]) << 8) | ((uint32_t)reg[2]);
     return (uint32_t)((float)reg_value * F_STEP);
 }

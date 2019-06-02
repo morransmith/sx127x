@@ -2,7 +2,7 @@
  * @ Author: Morran Smith
  * @ Create Time: 2019-06-01 09:51:05
  * @ Modified by: Morran Smith
- * @ Modified time: 2019-06-02 10:09:38
+ * @ Modified time: 2019-06-02 21:30:21
  * @ Description:
  */
 
@@ -43,6 +43,8 @@ uint8_t sx127x_reset(sx127x_dev_t* dev)
     dev->common->delay(1);
     dev->common->reset_control(false);
     dev->common->delay(10);
+
+    return 0;
 }
 
 void sx127x_dio_0_callback(sx127x_dev_t* dev)
@@ -122,10 +124,8 @@ uint8_t sx127x_init(sx127x_dev_t* dev, sx127x_radio_settings_t* settings)
     if (sx127x_get_version(dev) != VERSION)
         return -1;
 
-    if (sx127x_set_standby(dev) != 0)
+    if (sx127x_set_sleep(dev) != 0)
         return -1;
-
-    sx127x_load_current_parameters(dev);
 
     if (sx127x_set_modulation_mode(dev, settings->modulation) != 0)
         return -1;
@@ -173,6 +173,8 @@ uint8_t sx127x_load_current_parameters(sx127x_dev_t* dev)
     sx127x_get_preamble_length(dev);
     sx127x_get_frequency(dev);
     sx127x_get_sync_word(dev);
+
+    return 0;
 }
 
 uint8_t sx127x_get_version(sx127x_dev_t* dev)
