@@ -11,9 +11,6 @@
 #include <sx127x_private.h>
 #include <sx127x_registers.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-
 uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbacks, common_t* common)
 {
     *dev = (sx127x_dev_t*)malloc(sizeof(sx127x_dev_t));
@@ -191,6 +188,23 @@ uint8_t sx127x_load_current_parameters(sx127x_dev_t* dev)
 uint8_t sx127x_get_version(sx127x_dev_t* dev)
 {
     return sx127x_read_register(dev->spi, RegVersion);
+}
+
+int sx127x_get_rssi(sx127x_dev_t* dev)
+{
+    return ((dev->settings.frequency < 520000000) ? -164 : -157) + (int)(int8_t)(sx127x_read_register(dev->spi, RegRssiValue));
+}
+
+int sx127x_get_last_packet_rssi(sx127x_dev_t* dev)
+{
+    if (sx127x_get_last_packet_snr(dev) >= 0)
+        return ((dev->settings.frequency < 520000000) ? -164 : -157) + (16 / 15 * (int)(int8_t)(sx127x_read_register(dev->spi, RegPktRssiValue)));
+    return ((dev->settings.frequency < 520000000) ? -164 : -157) + (int)(int8_t)(sx127x_read_register(dev->spi, RegPktRssiValue));
+}
+
+int sx127x_get_last_packet_snr(sx127x_dev_t* dev)
+{
+    return (int)(int8_t)(sx127x_read_register(dev->spi, RegPktSnrValue)) / 4;
 }
 
 uint8_t sx127x_set_sleep(sx127x_dev_t* dev)

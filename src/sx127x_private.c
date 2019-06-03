@@ -150,10 +150,13 @@ uint8_t sx127x_set_power(sx127x_dev_t* dev, uint8_t power)
 
 uint8_t sx127x_set_spreading_factor(sx127x_dev_t* dev, spreading_factor_t spreading_factor)
 {
-    if (spreading_factor < SF_10)
+    if (spreading_factor < SF_10) {
         sx127x_write_register(dev->spi, RegModemConfig3, sx127x_read_register(dev->spi, RegModemConfig3) & ~(1 << 3));
-    else
+        sx127x_write_register(dev->spi, RegSymbTimeoutLsb, 0x08);
+    } else {
         sx127x_write_register(dev->spi, RegModemConfig3, sx127x_read_register(dev->spi, RegModemConfig3) | (1 << 3));
+        sx127x_write_register(dev->spi, RegSymbTimeoutLsb, 0x05);
+    }
 
     sx127x_write_register(dev->spi, RegModemConfig2, (sx127x_read_register(dev->spi, RegModemConfig2) & 0x0f) | ((uint8_t)spreading_factor << 4));
 
