@@ -14,13 +14,16 @@
 void sx127x_write_register(spi_t* dev, uint8_t reg, uint8_t val)
 {
     uint8_t buffer[] = { reg | 0x80, val };
+
     dev->transmit(buffer, 2);
 }
 
 uint8_t sx127x_read_register(spi_t* dev, uint8_t reg)
 {
     uint8_t result = 0xFF;
+
     dev->transmit_receive(&reg, 1, &result, 1);
+
     return result;
 }
 

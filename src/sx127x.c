@@ -49,19 +49,27 @@ uint8_t sx127x_reset(sx127x_dev_t* dev)
 
 void sx127x_dio_0_callback(sx127x_dev_t* dev)
 {
-    uint8_t irq = sx127x_get_irq_flags(dev);
+    volatile uint8_t irq = sx127x_get_irq_flags(dev);
 
     switch (dev->settings.mode) {
     case MODE_TX:
         if (!(irq & FlagTxDone))
             break;
 
+        sx127x_clear_irq_flags(dev, FlagTxDone);
+
         dev->callbacks->tx_done();
 
-        sx127x_clear_irq_flags(dev, FlagTxDone);
         break;
     case MODE_RXCONTINUOUS:
     case MODE_RXSINGLE: {
+        if (irq & FlagPayloadCrcError) {
+            sx127x_clear_irq_flags(dev, FlagRxTimeout);
+
+            dev->callbacks->rx_timeout();
+            break;
+        }
+
         if (!(irq & FlagRxDone))
             break;
 
@@ -70,9 +78,10 @@ void sx127x_dio_0_callback(sx127x_dev_t* dev)
 
         sx127x_read_fifo(dev, buffer, size);
 
+        sx127x_clear_irq_flags(dev, FlagRxDone);
+
         dev->callbacks->rx_done(buffer, size);
 
-        sx127x_clear_irq_flags(dev, FlagRxDone);
     } break;
     default:
         break;
@@ -81,15 +90,16 @@ void sx127x_dio_0_callback(sx127x_dev_t* dev)
 
 void sx127x_dio_1_callback(sx127x_dev_t* dev)
 {
+
     if (dev->settings.mode != MODE_RXSINGLE)
         return;
 
     if (!(sx127x_get_irq_flags(dev) & FlagRxTimeout))
         return;
 
-    dev->callbacks->rx_timeout();
-
     sx127x_clear_irq_flags(dev, FlagRxTimeout);
+
+    dev->callbacks->rx_timeout();
 }
 
 void sx127x_dio_2_callback(sx127x_dev_t* dev)
@@ -98,6 +108,7 @@ void sx127x_dio_2_callback(sx127x_dev_t* dev)
 
 void sx127x_dio_3_callback(sx127x_dev_t* dev)
 {
+
     if (!(dev->settings.mode == MODE_RXSINGLE || dev->settings.mode == MODE_RXCONTINUOUS))
         return;
 
@@ -185,24 +196,28 @@ uint8_t sx127x_get_version(sx127x_dev_t* dev)
 uint8_t sx127x_set_sleep(sx127x_dev_t* dev)
 {
     uint8_t reg = sx127x_read_register(dev->spi, RegOpMode);
+
     sx127x_write_register(dev->spi, RegOpMode, (reg & 0xF8) | MODE_SLEEP);
+
     dev->settings.mode = MODE_SLEEP;
+
     return 0;
 }
 
 uint8_t sx127x_set_standby(sx127x_dev_t* dev)
 {
     uint8_t reg = sx127x_read_register(dev->spi, RegOpMode);
+
     sx127x_write_register(dev->spi, RegOpMode, (reg & 0xF8) | MODE_STDBY);
+
     dev->settings.mode = MODE_STDBY;
+
     return 0;
 }
 
 uint8_t sx127x_transmit(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size, uint32_t delay)
 {
-    uint16_t dio_mapping = sx127x_get_dio_config(dev);
-
-    if (sx127x_set_dio_config(dev, dio_mapping | (DIO_MODE_DISABLE << DIO_0_MAPPING)) != 0) // Отключение DIO0
+    if (sx127x_set_dio_config(dev, (DIO_MODE_DISABLE << DIO_0_MAPPING) | (DIO_MODE_DISABLE << DIO_1_MAPPING) | (DIO_MODE_DISABLE << DIO_2_MAPPING) | (DIO_MODE_DISABLE << DIO_3_MAPPING) | (DIO_MODE_DISABLE << DIO_4_MAPPING) | (DIO_MODE_DISABLE << DIO_5_MAPPING)) != 0) // Отключение DIO
         return -1;
 
     if (sx127x_clear_irq_flags(dev, FlagTxDone) != 0) // На всякий случай очистра прерывания TxDone
@@ -232,9 +247,7 @@ uint8_t sx127x_transmit(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size, uint32
 
 uint8_t sx127x_transmit_it(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size)
 {
-    uint16_t dio_mapping = sx127x_get_dio_config(dev);
-
-    if (sx127x_set_dio_config(dev, dio_mapping & (DIO_MODE_0 << DIO_0_MAPPING)) != 0) // Включение DIO0
+    if (sx127x_set_dio_config(dev, (DIO_MODE_1 << DIO_0_MAPPING) | (DIO_MODE_DISABLE << DIO_1_MAPPING) | (DIO_MODE_DISABLE << DIO_2_MAPPING) | (DIO_MODE_DISABLE << DIO_3_MAPPING) | (DIO_MODE_DISABLE << DIO_4_MAPPING) | (DIO_MODE_DISABLE << DIO_5_MAPPING)) != 0) // Включение DIO0
         return -1;
 
     if (sx127x_clear_irq_flags(dev, FlagTxDone) != 0) // На всякий случай очистра прерывания TxDone
@@ -257,15 +270,16 @@ uint8_t sx127x_transmit_it(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size)
 
 uint8_t sx127x_receive_single(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* size)
 {
-    uint16_t dio_mapping = sx127x_get_dio_config(dev);
-
-    if (sx127x_set_dio_config(dev, dio_mapping | (DIO_MODE_DISABLE << DIO_0_MAPPING) | (DIO_MODE_DISABLE << DIO_1_MAPPING) | (DIO_MODE_DISABLE << DIO_3_MAPPING)) != 0) // Отключение DIO0, DIO1 и DIO3
+    if (sx127x_set_dio_config(dev, (DIO_MODE_DISABLE << DIO_0_MAPPING) | (DIO_MODE_DISABLE << DIO_1_MAPPING) | (DIO_MODE_DISABLE << DIO_2_MAPPING) | (DIO_MODE_DISABLE << DIO_3_MAPPING) | (DIO_MODE_DISABLE << DIO_4_MAPPING) | (DIO_MODE_DISABLE << DIO_5_MAPPING)) != 0) // Отключение DIO
         return -1;
 
-    if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерывания TxDone
+    if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерываний
         return -1;
 
     if (sx127x_set_irq_flags_mask(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // Включение прерывания по окончании отправки
+        return -1;
+
+    if (sx127x_set_standby(dev) != 0) // FIFO не доступен в режиме SLEEP
         return -1;
 
     if (sx127x_set_fifo_rx_pointer(dev, 0) != 0)
@@ -304,18 +318,19 @@ uint8_t sx127x_receive_single(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* size)
 
 uint8_t sx127x_receive_single_it(sx127x_dev_t* dev)
 {
-    uint16_t dio_mapping = sx127x_get_dio_config(dev);
-
-    if (sx127x_set_dio_config(dev, dio_mapping & (DIO_MODE_0 << DIO_0_MAPPING) & (DIO_MODE_0 << DIO_1_MAPPING) & (DIO_MODE_0 << DIO_3_MAPPING)) != 0) // Включение DIO0, DIO1 и DIO3
+    if (sx127x_set_dio_config(dev, (DIO_MODE_0 << DIO_0_MAPPING) | (DIO_MODE_0 << DIO_1_MAPPING) | (DIO_MODE_DISABLE << DIO_2_MAPPING) | (DIO_MODE_2 << DIO_3_MAPPING) | (DIO_MODE_DISABLE << DIO_4_MAPPING) | (DIO_MODE_DISABLE << DIO_5_MAPPING)) != 0) // Включение DIO0, DIO1 и DIO3
         return -1;
 
-    if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерывания TxDone
+    if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерываний
         return -1;
 
     if (sx127x_set_irq_flags_mask(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // Включение прерывания по окончании отправки
         return -1;
 
-    if (sx127x_set_fifo_rx_pointer(dev, 0) != 0)
+    if (sx127x_set_standby(dev) != 0) // FIFO не доступен в режиме SLEEP
+        return -1;
+
+    if (sx127x_set_fifo_rx_pointer(dev, 1) != 0)
         return -1;
 
     if (sx127x_set_rx_single(dev) != 0)
@@ -328,14 +343,15 @@ uint8_t sx127x_receive_continuous(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* s
 {
     if (dev->settings.mode != MODE_RXCONTINUOUS) {
 
-        uint16_t dio_mapping = sx127x_get_dio_config(dev);
+        if (sx127x_set_dio_config(dev, (DIO_MODE_DISABLE << DIO_0_MAPPING) | (DIO_MODE_DISABLE << DIO_1_MAPPING) | (DIO_MODE_DISABLE << DIO_2_MAPPING) | (DIO_MODE_DISABLE << DIO_3_MAPPING) | (DIO_MODE_DISABLE << DIO_4_MAPPING) | (DIO_MODE_DISABLE << DIO_5_MAPPING)) != 0) // Отключение DIO
 
-        if (sx127x_set_dio_config(dev, dio_mapping | (DIO_MODE_DISABLE << DIO_0_MAPPING) | (DIO_MODE_DISABLE << DIO_1_MAPPING) | (DIO_MODE_DISABLE << DIO_3_MAPPING)) != 0) // Отключение DIO0, DIO1 и DIO3
-
-            if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерывания TxDone
+            if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерываний
                 return -1;
 
         if (sx127x_set_irq_flags_mask(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // Включение прерывания по окончании отправки
+            return -1;
+
+        if (sx127x_set_standby(dev) != 0) // FIFO не доступен в режиме SLEEP
             return -1;
 
         if (sx127x_set_fifo_rx_pointer(dev, 0) != 0)
@@ -375,15 +391,16 @@ uint8_t sx127x_receive_continuous(sx127x_dev_t* dev, uint8_t* buffer, uint8_t* s
 
 uint8_t sx127x_receive_continuous_it(sx127x_dev_t* dev)
 {
-    uint16_t dio_mapping = sx127x_get_dio_config(dev);
-
-    if (sx127x_set_dio_config(dev, dio_mapping & (DIO_MODE_0 << DIO_0_MAPPING) & (DIO_MODE_0 << DIO_1_MAPPING) & (DIO_MODE_0 << DIO_3_MAPPING)) != 0) // Включение DIO0, DIO1 и DIO3
+    if (sx127x_set_dio_config(dev, (DIO_MODE_0 << DIO_0_MAPPING) | (DIO_MODE_0 << DIO_1_MAPPING) | (DIO_MODE_DISABLE << DIO_2_MAPPING) | (DIO_MODE_2 << DIO_3_MAPPING) | (DIO_MODE_DISABLE << DIO_4_MAPPING) | (DIO_MODE_DISABLE << DIO_5_MAPPING)) != 0) // Включение DIO0, DIO1 и DIO3
         return -1;
 
-    if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерывания TxDone
+    if (sx127x_clear_irq_flags(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // На всякий случай очистра прерываний
         return -1;
 
     if (sx127x_set_irq_flags_mask(dev, FlagPayloadCrcError | FlagRxDone | FlagRxTimeout) != 0) // Включение прерывания по окончании отправки
+        return -1;
+
+    if (sx127x_set_standby(dev) != 0) // FIFO не доступен в режиме SLEEP
         return -1;
 
     if (sx127x_set_fifo_rx_pointer(dev, 0) != 0)

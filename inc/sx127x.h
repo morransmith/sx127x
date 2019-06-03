@@ -109,6 +109,22 @@ uint8_t sx127x_get_version(sx127x_dev_t* dev);
 uint8_t sx127x_set_sleep(sx127x_dev_t* dev);
 uint8_t sx127x_set_standby(sx127x_dev_t* dev);
 
+uint8_t sx127x_set_power(sx127x_dev_t* dev, uint8_t power);
+
+uint8_t sx127x_set_spreading_factor(sx127x_dev_t* dev, spreading_factor_t spreading_factor);
+
+uint8_t sx127x_set_band_width(sx127x_dev_t* dev, band_width_t band_width);
+
+uint8_t sx127x_set_coding_rate(sx127x_dev_t* dev, coding_rate_t coding_rate);
+
+uint8_t sx127x_set_payload_crc_on(sx127x_dev_t* dev, bool crc_on);
+
+uint8_t sx127x_set_preamble_length(sx127x_dev_t* dev, uint16_t preamble_length);
+
+uint8_t sx127x_set_frequency(sx127x_dev_t* dev, uint32_t frequency);
+
+uint8_t sx127x_set_sync_word(sx127x_dev_t* dev, uint8_t sync_word);
+
 uint8_t sx127x_transmit(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size, uint32_t delay);
 uint8_t sx127x_transmit_it(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size);
 

@@ -69,24 +69,33 @@ uint8_t sx127x_read_fifo(sx127x_dev_t* dev, uint8_t* buffer, uint8_t size)
 uint8_t sx127x_set_tx(sx127x_dev_t* dev)
 {
     uint8_t reg = sx127x_read_register(dev->spi, RegOpMode);
+
     sx127x_write_register(dev->spi, RegOpMode, (reg & 0xF8) | MODE_TX);
+
     dev->settings.mode = MODE_TX;
+
     return 0;
 }
 
 uint8_t sx127x_set_rx_single(sx127x_dev_t* dev)
 {
     uint8_t reg = sx127x_read_register(dev->spi, RegOpMode);
+
     sx127x_write_register(dev->spi, RegOpMode, (reg & 0xF8) | MODE_RXSINGLE);
+
     dev->settings.mode = MODE_RXSINGLE;
+
     return 0;
 }
 
 uint8_t sx127x_set_rx_continuos(sx127x_dev_t* dev)
 {
     uint8_t reg = sx127x_read_register(dev->spi, RegOpMode);
+
     sx127x_write_register(dev->spi, RegOpMode, (reg & 0xF8) | MODE_RXCONTINUOUS);
+
     dev->settings.mode = MODE_RXCONTINUOUS;
+
     return 0;
 }
 
@@ -197,6 +206,7 @@ uint8_t sx127x_set_frequency(sx127x_dev_t* dev, uint32_t frequency)
         sx127x_write_register(dev->spi, RegOpMode, sx127x_read_register(dev->spi, RegOpMode) & ~(1 << 3));
 
     uint8_t reg[3];
+
     if (sx127x_frequency_to_reg(frequency, reg) != 0)
         return -1;
 
@@ -252,7 +262,9 @@ uint8_t sx127x_get_irq_flags_mask(sx127x_dev_t* dev)
 uint16_t sx127x_get_dio_config(sx127x_dev_t* dev)
 {
     uint8_t buffer[2];
+
     sx127x_read_burst(dev->spi, RegDioMapping1, buffer, 2);
+
     return (((uint16_t)(buffer[0]) << 8) | ((uint16_t)(buffer[1]) & 0xff)) & 0xfff0; // regdiomapping1 & regdiomapping2[4:7]
 }
 
@@ -374,5 +386,6 @@ uint8_t sx127x_frequency_to_reg(uint32_t frequency, uint8_t* reg)
 uint32_t sx127x_reg_to_frequency(uint8_t* reg)
 {
     uint32_t reg_value = (((uint32_t)reg[0]) << 16) | (((uint32_t)reg[1]) << 8) | ((uint32_t)reg[2]);
+
     return (uint32_t)((float)reg_value * F_STEP);
 }

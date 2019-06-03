@@ -85,7 +85,6 @@
 #define DIO_MODE_2 2
 #define DIO_MODE_DISABLE 3
 
-// #define VERSION 0x12
-#define VERSION 0xFF
+#define VERSION 0x12
 
 #endif /* SX127X_REGISTERS_H */
