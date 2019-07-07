@@ -11,6 +11,8 @@
 #include <sx127x_private.h>
 #include <sx127x_registers.h>
 
+#include <malloc.h>
+
 uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbacks, common_t* common)
 {
     *dev = (sx127x_dev_t*)malloc(sizeof(sx127x_dev_t));
@@ -59,13 +61,21 @@ void sx127x_dio_0_callback(sx127x_dev_t* dev)
 
         break;
     case MODE_RXCONTINUOUS:
-    case MODE_RXSINGLE: {
         if (irq & FlagPayloadCrcError) {
+            sx127x_clear_irq_flags(dev, FlagPayloadCrcError);
+
+            dev->callbacks->rx_crc_error();
+            break;
+        }
+
+        if (irq & FlagRxTimeout) {
             sx127x_clear_irq_flags(dev, FlagRxTimeout);
 
             dev->callbacks->rx_timeout();
             break;
         }
+        //no break
+    case MODE_RXSINGLE: {
 
         if (!(irq & FlagRxDone))
             break;
@@ -79,7 +89,8 @@ void sx127x_dio_0_callback(sx127x_dev_t* dev)
 
         dev->callbacks->rx_done(buffer, size);
 
-    } break;
+        break;
+    }
     default:
         break;
     }

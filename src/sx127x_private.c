@@ -310,7 +310,7 @@ pa_select_t sx127x_get_pa_select(sx127x_dev_t* dev)
 
 uint8_t sx127x_get_power(sx127x_dev_t* dev)
 {
-    dev->settings.power = sx127x_read_register(dev->spi, RegPaConfig) & 0x07;
+    dev->settings.power = sx127x_read_register(dev->spi, RegPaConfig) & 0x0F;
 
     return dev->settings.power;
 }
