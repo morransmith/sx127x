@@ -11,14 +11,14 @@
 #include <sx127x_io.h>
 #include <sx127x_registers.h>
 
-void sx127x_write_register(spi_t* dev, uint8_t reg, uint8_t val)
+void sx127x_write_register(sx127x_spi_t* dev, uint8_t reg, uint8_t val)
 {
     uint8_t buffer[] = { reg | 0x80, val };
 
     dev->transmit(buffer, 2);
 }
 
-uint8_t sx127x_read_register(spi_t* dev, uint8_t reg)
+uint8_t sx127x_read_register(sx127x_spi_t* dev, uint8_t reg)
 {
     uint8_t result = 0xFF;
 
@@ -27,7 +27,7 @@ uint8_t sx127x_read_register(spi_t* dev, uint8_t reg)
     return result;
 }
 
-uint8_t sx127x_write_burst(spi_t* dev, uint8_t reg, uint8_t* buffer, uint8_t size)
+uint8_t sx127x_write_burst(sx127x_spi_t* dev, uint8_t reg, uint8_t* buffer, uint8_t size)
 {
     if (size == 0)
         return -1;
@@ -42,7 +42,7 @@ uint8_t sx127x_write_burst(spi_t* dev, uint8_t reg, uint8_t* buffer, uint8_t siz
     return 0;
 }
 
-uint8_t sx127x_read_burst(spi_t* dev, uint8_t reg, uint8_t* buffer, uint8_t size)
+uint8_t sx127x_read_burst(sx127x_spi_t* dev, uint8_t reg, uint8_t* buffer, uint8_t size)
 {
     if (size == 0)
         return -1;

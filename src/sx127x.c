@@ -11,31 +11,6 @@
 #include <sx127x_private.h>
 #include <sx127x_registers.h>
 
-#include <malloc.h>
-
-uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbacks, common_t* common)
-{
-    *dev = (sx127x_dev_t*)malloc(sizeof(sx127x_dev_t));
-    if (!dev)
-        return -1;
-
-    (*dev)->spi = spi;
-    (*dev)->callbacks = callbacks;
-    (*dev)->common = common;
-
-    return 0;
-}
-
-uint8_t sx127x_free(sx127x_dev_t** dev)
-{
-    if (!*dev)
-        return -1;
-
-    free(*dev);
-
-    return 0;
-}
-
 uint8_t sx127x_reset(sx127x_dev_t* dev)
 {
     dev->common->reset_control(true);

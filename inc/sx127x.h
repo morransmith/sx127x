@@ -82,14 +82,11 @@ typedef struct sx127x_radio_settings {
 } sx127x_radio_settings_t;
 
 typedef struct dev {
-    spi_t* spi;
-    common_t* common;
-    sx127x_radio_settings_t settings;
+    sx127x_spi_t* spi;
     sx127x_callbacks_t* callbacks;
+    sx127x_common_t* common;
+    sx127x_radio_settings_t settings;
 } sx127x_dev_t;
-
-uint8_t sx127x_alloc(sx127x_dev_t** dev, spi_t* spi, sx127x_callbacks_t* callbacks, common_t* common);
-uint8_t sx127x_free(sx127x_dev_t** dev);
 
 uint8_t sx127x_reset(sx127x_dev_t* dev);
 
