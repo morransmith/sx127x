@@ -131,6 +131,11 @@ uint8_t sx127x_set_pa_select(sx127x_dev_t* dev, pa_select_t pa_select)
 {
     sx127x_write_register(dev->spi, RegPaConfig, (sx127x_read_register(dev->spi, RegPaConfig) & 0x7f) | ((uint8_t)pa_select) << 7);
 
+    if (pa_select == PA_BOOST)
+        sx127x_write_register(dev->spi, RegPaDac, 0x87);
+    else
+        sx127x_write_register(dev->spi, RegPaDac, 0x84);
+
     dev->settings.pa_select = pa_select;
 
     return 0;
