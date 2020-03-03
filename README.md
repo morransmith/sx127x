@@ -9,17 +9,37 @@
 #include <string.h>
 #include <sx127x.h>
 
-static sx127x_dev_t* sx1278_phy;
-
-uint32_t spi_transmit(uint8_t* buffer, uint32_t size);
-uint32_t spi_receive(uint8_t* buffer, uint32_t size);
-uint32_t spi_transmit_receive(uint8_t* tx_buffer, uint32_t tx_size, uint8_t* rx_buffer, uint32_t rx_size);
+uint32_t sx127x_spi_transmit(uint8_t* buffer, uint32_t size);
+uint32_t sx127x_spi_transmit_receive(uint8_t* tx_buffer, uint32_t tx_size, uint8_t* rx_buffer, uint32_t rx_size);
 void sx127x_delay(uint32_t delay);
 void sx127x_reset_control(bool state);
 void sx127x_rx_callback(uint8_t* buffer, uint8_t size);
-void sx127x_tx_callback();
-void sx127x_rx_timeout_callback();
-void sx127x_rx_crc_error_callback();
+void sx127x_tx_callback(void);
+void sx127x_rx_timeout_callback(void);
+void sx127x_rx_crc_error_callback(void);
+
+sx127x_spi_t sx127x_spi = {
+    .transmit = &sx127x_spi_transmit,
+    .transmit_receive = &sx127x_spi_transmit_receive,
+};
+
+sx127x_callbacks_t sx127x_callbacks = {
+    .rx_done = &sx127x_rx_callback,
+    .tx_done = &sx127x_tx_callback,
+    .rx_timeout = &sx127x_rx_timeout_callback,
+    .rx_crc_error = &sx127x_rx_crc_error_callback,
+};
+
+sx127x_common_t sx127x_common = {
+    .delay = &sx127x_delay,
+    .reset_control = &sx127x_reset_control,
+};
+
+sx127x_dev_t sx1278_phy = {
+    .spi = &sx127x_spi,
+    .callbacks = &sx127x_callbacks,
+    .common = &sx127x_common,
+};
 
 int main(void)
 {
@@ -52,27 +72,6 @@ int main(void)
     HAL_GPIO_WritePin(RESET_GPIO_Port, RESET_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(NSS_GPIO_Port, NSS_Pin, GPIO_PIN_SET);
 
-    spi_t spi = {
-        .transmit = &spi_transmit,
-        .transmit_receive = &spi_transmit_receive,
-        .receive = &spi_receive,
-    };
-
-    sx127x_callbacks_t callbacks = {
-        .rx_done = &sx127x_rx_callback,
-        .tx_done = &sx127x_tx_callback,
-        .rx_timeout = &sx127x_rx_timeout_callback,
-        .rx_crc_error = &sx127x_rx_crc_error_callback,
-    };
-
-    common_t common = {
-        .delay = &sx127x_delay,
-        .reset_control = &sx127x_reset_control,
-    };
-
-    if (sx127x_alloc(&sx1278_phy, &spi, &callbacks, &common) != 0)
-        Error_Handler();
-
     sx127x_radio_settings_t settings = {
         .modulation = LORA,
         .pa_select = PA_BOOST,
@@ -86,57 +85,51 @@ int main(void)
         .sync_word = 0x6c,
     };
 
-    sx127x_init(sx1278_phy, &settings);
+    sx127x_init(&sx1278_phy, &settings);
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
 
-    sx127x_receive_continuous_it(sx1278_phy);
+    sx127x_receive_continuous_it(&sx1278_phy);
     while (1) {
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
     }
 
-    sx127x_free(&sx1278_phy);
     /* USER CODE END 3 */
 }
 
-uint32_t spi_transmit(uint8_t* buffer, uint32_t size)
+uint32_t sx127x_spi_transmit(uint8_t* buffer, uint32_t size)
 {
-    HAL_GPIO_WritePin(NSS_GPIO_Port, NSS_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(SPI2_NSS_GPIO_Port, SPI2_NSS_Pin, GPIO_PIN_RESET);
 
-    HAL_SPI_Transmit(&hspi1, buffer, size, 0x1000);
+    HAL_SPI_Transmit(&hspi2, buffer, size, 0x1000);
 
-    while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+    while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
         ;
 
-    HAL_GPIO_WritePin(NSS_GPIO_Port, NSS_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(SPI2_NSS_GPIO_Port, SPI2_NSS_Pin, GPIO_PIN_SET);
 
     return 0;
 }
 
-uint32_t spi_receive(uint8_t* buffer, uint32_t size)
+uint32_t sx127x_spi_transmit_receive(uint8_t* tx_buffer, uint32_t tx_size, uint8_t* rx_buffer, uint32_t rx_size)
 {
-    return 0;
-}
+    HAL_GPIO_WritePin(SPI2_NSS_GPIO_Port, SPI2_NSS_Pin, GPIO_PIN_RESET);
 
-uint32_t spi_transmit_receive(uint8_t* tx_buffer, uint32_t tx_size, uint8_t* rx_buffer, uint32_t rx_size)
-{
-    HAL_GPIO_WritePin(NSS_GPIO_Port, NSS_Pin, GPIO_PIN_RESET);
+    HAL_SPI_Transmit(&hspi2, tx_buffer, tx_size, 0x1000);
 
-    HAL_SPI_Transmit(&hspi1, tx_buffer, tx_size, 0x1000);
-
-    while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+    while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
         ;
 
-    HAL_SPI_Receive(&hspi1, rx_buffer, rx_size, 0x1000);
+    HAL_SPI_Receive(&hspi2, rx_buffer, rx_size, 0x1000);
 
-    while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+    while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY)
         ;
 
-    HAL_GPIO_WritePin(NSS_GPIO_Port, NSS_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(SPI2_NSS_GPIO_Port, SPI2_NSS_Pin, GPIO_PIN_SET);
 
     return 0;
 }
@@ -148,12 +141,13 @@ void sx127x_delay(uint32_t delay)
 
 void sx127x_reset_control(bool state)
 {
-    HAL_GPIO_WritePin(RESET_GPIO_Port, RESET_Pin, (state) ? GPIO_PIN_RESET : GPIO_PIN_SET);
+    HAL_GPIO_WritePin(SX_RESET_GPIO_Port, SX_RESET_Pin,
+        (state) ? GPIO_PIN_RESET : GPIO_PIN_SET);
 }
 
 void sx127x_rx_callback(uint8_t* buffer, uint8_t size)
 {
-    printf("RX DONE. DATA: %s | RSSI: %d | SNR: %d\r\n", buffer, sx127x_get_last_packet_rssi(sx1278_phy), sx127x_get_last_packet_snr(sx1278_phy));
+    printf("RX DONE. DATA: %s | RSSI: %d | SNR: %d\r\n", buffer, sx127x_get_last_packet_rssi(&sx1278_phy), sx127x_get_last_packet_snr(&sx1278_phy));
 }
 
 void sx127x_tx_callback()
